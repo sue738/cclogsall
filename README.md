@@ -24,6 +24,11 @@ run `ccforever backup` to archive everything (compressed, incremental, local)
 ## Install / run
 
 ```bash
+npx ccforever              # run without installing (from npm)
+npm install -g ccforever   # or make it a command: ccforever
+```
+
+```bash
 npx ccforever              # diagnose only — read-only, see what expires
 npx ccforever backup       # gzip mirror -> ~/.ccforever (~10x smaller)
 ccforever status           # archive vs live
