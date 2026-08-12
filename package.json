@@ -1,9 +1,9 @@
 {
-  "name": "ccforever",
+  "name": "cclogsall",
   "version": "0.1.0",
   "description": "Claude Code silently deletes your transcripts after 30 days. Keep yours — compressed, incremental, local.",
   "bin": {
-    "ccforever": "bin/ccforever.js"
+    "cclogsall": "bin/cclogsall.js"
   },
   "files": [
     "bin",
@@ -20,11 +20,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sue738/ccforever.git"
+    "url": "git+https://github.com/sue738/cclogsall.git"
   },
-  "homepage": "https://github.com/sue738/ccforever#readme",
+  "homepage": "https://github.com/sue738/cclogsall#readme",
   "bugs": {
-    "url": "https://github.com/sue738/ccforever/issues"
+    "url": "https://github.com/sue738/cclogsall/issues"
   },
   "author": "sue738",
   "keywords": [

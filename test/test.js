@@ -1,4 +1,4 @@
-/** test.js — ccforever のテスト。実 ~/.claude に触れない(fixture のみ)・ロケール非依存。 */
+/** test.js — cclogsall のテスト。実 ~/.claude に触れない(fixture のみ)・ロケール非依存。 */
 'use strict';
 
 const fs = require('fs');
@@ -12,7 +12,7 @@ const I = require('../lib/install.js');
 let pass = 0, fail = 0;
 const ok = (n, c) => { if (c) { pass++; console.log('  ✓', n); } else { fail++; console.log('  ✗', n); } };
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ccforever-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cclogsall-'));
 const claudeDir = path.join(tmp, 'claude');
 const out = path.join(tmp, 'archive');
 const mk = (rel, content, ageDays) => {
@@ -96,8 +96,8 @@ const diff = K.statusDiff(K.listLiveSessions(claudeDir), K.readManifest(out));
 ok('復元ファイルは mtime 変化で pending 扱い', diff.pending >= 1);
 
 console.log('== install(純関数) ==');
-const cmd = I.hookCommand('/usr/bin/node', '/x/bin/ccforever.js');
-ok('PATH 優先+焼き込みフォールバック', cmd.includes('command -v ccforever') && cmd.includes('/x/bin/ccforever.js') && cmd.endsWith('|| true'));
+const cmd = I.hookCommand('/usr/bin/node', '/x/bin/cclogsall.js');
+ok('PATH 優先+焼き込みフォールバック', cmd.includes('command -v cclogsall') && cmd.includes('/x/bin/cclogsall.js') && cmd.endsWith('|| true'));
 const s0 = { permissions: { allow: ['Bash(git *)'] } };
 const s1 = I.withHook(s0, cmd);
 ok('既存設定を保持したまま追加', s1.permissions.allow[0] === 'Bash(git *)' && s1.hooks.SessionStart.length === 1);
@@ -110,12 +110,12 @@ const sOther = I.withoutHook({ hooks: { SessionStart: [{ matcher: '', hooks: [{ 
 ok('他ツールのフックは残す', sOther.hooks.SessionStart.length === 1);
 
 console.log('== CLI(環境変数で隔離) ==');
-const BIN = path.join(__dirname, '..', 'bin', 'ccforever.js');
+const BIN = path.join(__dirname, '..', 'bin', 'cclogsall.js');
 const env = Object.assign({}, process.env, {
-  CCFOREVER_CLAUDE_DIR: claudeDir,
-  CCFOREVER_SETTINGS: path.join(claudeDir, 'settings.json'),
-  CCFOREVER_OUT: path.join(tmp, 'archive2'),
-  CCFOREVER_LANG: 'en',
+  CCLOGSALL_CLAUDE_DIR: claudeDir,
+  CCLOGSALL_SETTINGS: path.join(claudeDir, 'settings.json'),
+  CCLOGSALL_OUT: path.join(tmp, 'archive2'),
+  CCLOGSALL_LANG: 'en',
 });
 fs.writeFileSync(path.join(claudeDir, 'settings.json'), JSON.stringify({ cleanupPeriodDays: 30 }));
 const diag = execFileSync('node', [BIN], { encoding: 'utf8', env });
@@ -127,7 +127,7 @@ const stat = execFileSync('node', [BIN, 'status'], { encoding: 'utf8', env });
 ok('status が live/archive を対比', stat.includes('archive: 4 sessions') && stat.includes('live: 4 sessions'));
 const js = JSON.parse(execFileSync('node', [BIN, 'status', '--json'], { encoding: 'utf8', env }));
 ok('--json', js.archive.sessions === 4 && typeof js.diff.pending === 'number');
-const ja = execFileSync('node', [BIN], { encoding: 'utf8', env: Object.assign({}, env, { CCFOREVER_LANG: 'ja' }) });
+const ja = execFileSync('node', [BIN], { encoding: 'utf8', env: Object.assign({}, env, { CCLOGSALL_LANG: 'ja' }) });
 ok('ja ロケールで日本語', ja.includes('しか残っていません'));
 
 console.log('== search(gzipのまま全文検索) ==');
@@ -186,12 +186,12 @@ console.log('== search(gzipのまま全文検索) ==');
 
   // CLI
   const searchEnv = Object.assign({}, process.env, {
-    CCFOREVER_CLAUDE_DIR: path.join(sdir, 'claude'), CCFOREVER_OUT: path.join(sdir, 'archive'), CCFOREVER_LANG: 'en',
+    CCLOGSALL_CLAUDE_DIR: path.join(sdir, 'claude'), CCLOGSALL_OUT: path.join(sdir, 'archive'), CCLOGSALL_LANG: 'en',
   });
   const so = execFileSync('node', [BIN, 'search', 'B+木'], { encoding: 'utf8', env: searchEnv });
   // 抜粋は「最初にヒットしたエントリ」= この場合ユーザーの問いかけ
   ok('CLI: search が件数と抜粋を出す', so.includes('1 conversation(s) match') && so.includes('なぜ B+木 を使うのか'));
-  ok('CLI: 復元への導線', so.includes('ccforever restore'));
+  ok('CLI: 復元への導線', so.includes('cclogsall restore'));
   const sj = JSON.parse(execFileSync('node', [BIN, 'search', 'B+木', '--json'], { encoding: 'utf8', env: searchEnv }));
   ok('CLI: search --json', sj.total === 1 && typeof sj.results[0].snippet === 'string');
   const sn = execFileSync('node', [BIN, 'search', 'ZZZZ'], { encoding: 'utf8', env: searchEnv });

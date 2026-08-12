@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * ccforever — Claude Code silently deletes your transcripts after 30 days. Keep yours.
+ * cclogsall — Claude Code silently deletes your transcripts after 30 days. Keep yours.
  *
  * By default (cleanupPeriodDays: 30), every Claude Code startup deletes session
- * files older than 30 days — no warning, no trash, no undo. ccforever mirrors
+ * files older than 30 days — no warning, no trash, no undo. cclogsall mirrors
  * your transcripts into a compressed local archive, incrementally, so your
  * history survives the cleanup, reinstalls, and `~/.claude` accidents.
  *
- *   ccforever                 diagnose: how far back does your history go?
- *   ccforever backup          incremental gzip mirror -> ~/.ccforever
- *   ccforever status          archive vs live diff
- *   ccforever restore <id>    bring an archived session back
- *   ccforever install         auto-backup on every session start (with confirmation)
+ *   cclogsall                 diagnose: how far back does your history go?
+ *   cclogsall backup          incremental gzip mirror -> ~/.cclogsall
+ *   cclogsall status          archive vs live diff
+ *   cclogsall restore <id>    bring an archived session back
+ *   cclogsall install         auto-backup on every session start (with confirmation)
  *
  * Zero dependencies. Local only — nothing leaves your machine.
  */
@@ -25,25 +25,25 @@ const K = require('../lib/keeper.js');
 const I = require('../lib/install.js');
 const S = require('../lib/search.js');
 
-// 出力言語: 既定は英語、ロケールが日本語のときだけ日本語(CCFOREVER_LANGで明示指定も可)
-const JA = /^ja/i.test(process.env.CCFOREVER_LANG || process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG || '');
+// 出力言語: 既定は英語、ロケールが日本語のときだけ日本語(CCLOGSALL_LANGで明示指定も可)
+const JA = /^ja/i.test(process.env.CCLOGSALL_LANG || process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG || '');
 const L = (en, ja) => (JA ? ja : en);
 
-const HELP = `ccforever — keep your Claude Code history beyond the silent 30-day cleanup
+const HELP = `cclogsall — keep your Claude Code history beyond the silent 30-day cleanup
 
 Usage:
-  ccforever                  diagnose: how far back your history goes, what expires next
-  ccforever backup           incremental compressed mirror of ~/.claude/projects
-  ccforever status           what's archived vs pending
-  ccforever restore <id>     restore a session by id prefix (never overwrites)
-  ccforever restore --all --to DIR   unpack the whole archive for analysis
+  cclogsall                  diagnose: how far back your history goes, what expires next
+  cclogsall backup           incremental compressed mirror of ~/.claude/projects
+  cclogsall status           what's archived vs pending
+  cclogsall restore <id>     restore a session by id prefix (never overwrites)
+  cclogsall restore --all --to DIR   unpack the whole archive for analysis
                              (then: cchours --base-dir DIR)
-  ccforever search <query>   search every archived + live conversation
+  cclogsall search <query>   search every archived + live conversation
                              (plain text, or /regex/. --limit N, --json)
-  ccforever install          add a SessionStart hook that runs backup automatically
-  ccforever uninstall        remove that hook
+  cclogsall install          add a SessionStart hook that runs backup automatically
+  cclogsall uninstall        remove that hook
 Options:
-  --out DIR       archive directory (default ~/.ccforever, or CCFOREVER_OUT)
+  --out DIR       archive directory (default ~/.cclogsall, or CCLOGSALL_OUT)
   --to DIR        (restore) restore somewhere other than the live directory
   --quiet         minimal output (for hooks/cron)
   --yes           skip confirmation (install/uninstall)
@@ -51,8 +51,8 @@ Options:
 
 Archives include everything — secrets too. Scan before sharing them anywhere.`;
 
-const CLAUDE_DIR = process.env.CCFOREVER_CLAUDE_DIR || path.join(os.homedir(), '.claude');
-const SETTINGS = process.env.CCFOREVER_SETTINGS || path.join(CLAUDE_DIR, 'settings.json');
+const CLAUDE_DIR = process.env.CCLOGSALL_CLAUDE_DIR || path.join(os.homedir(), '.claude');
+const SETTINGS = process.env.CCLOGSALL_SETTINGS || path.join(CLAUDE_DIR, 'settings.json');
 
 function parseArgs(argv) {
   const o = { args: [] };
@@ -73,7 +73,7 @@ function parseArgs(argv) {
   return o;
 }
 
-const outDir = (o) => o.out || process.env.CCFOREVER_OUT || path.join(os.homedir(), '.ccforever');
+const outDir = (o) => o.out || process.env.CCLOGSALL_OUT || path.join(os.homedir(), '.cclogsall');
 const mb = (n) => (n / 1048576).toFixed(1);
 
 function cmdDiagnose(o) {
@@ -94,8 +94,8 @@ function cmdDiagnose(o) {
     console.log(L(`   ⚠ your oldest session will be deleted in ${d.expiresInDays} day(s); ${d.atRisk} session(s) expire within a week`,
       `   ⚠ 最古のセッションはあと${d.expiresInDays}日で削除されます(1週間以内に${d.atRisk}件が期限切れ)`));
   }
-  console.log(L('\nrun `ccforever backup` to archive everything (compressed, incremental, local)',
-    '\n`ccforever backup` で全履歴を圧縮アーカイブできます(増分・ローカル完結)'));
+  console.log(L('\nrun `cclogsall backup` to archive everything (compressed, incremental, local)',
+    '\n`cclogsall backup` で全履歴を圧縮アーカイブできます(増分・ローカル完結)'));
 }
 
 function cmdBackup(o) {
@@ -115,7 +115,7 @@ function cmdBackup(o) {
   if (toArchive.length) K.writeManifest(dir, manifest);
   const st = K.archiveStats(manifest);
   if (o.json) return console.log(JSON.stringify({ archived: toArchive.length, unchanged, archive: st }, null, 2));
-  if (o.quiet) return toArchive.length && console.log(`ccforever: +${toArchive.length}`);
+  if (o.quiet) return toArchive.length && console.log(`cclogsall: +${toArchive.length}`);
   console.log(L(
     `⛑ archived ${toArchive.length} session(s) (${unchanged} unchanged) — ${mb(size)} MB → ${mb(gzSize)} MB`,
     `⛑ ${toArchive.length}セッションをアーカイブ(${unchanged}件は変更なし) — ${mb(size)} MB → ${mb(gzSize)} MB`));
@@ -132,7 +132,7 @@ function cmdStatus(o) {
   const st = K.archiveStats(manifest);
   const diff = K.statusDiff(live, manifest);
   if (o.json) return console.log(JSON.stringify({ archive: st, diff }, null, 2));
-  if (!st.sessions) return console.log(L('archive is empty — run `ccforever backup`', 'アーカイブは空です — `ccforever backup` を実行してください'));
+  if (!st.sessions) return console.log(L('archive is empty — run `cclogsall backup`', 'アーカイブは空です — `cclogsall backup` を実行してください'));
   console.log(L(`archive: ${st.sessions} sessions, ${st.oldestDate} → ${st.newestDate}, ${mb(st.size)} MB → ${mb(st.gzSize)} MB on disk`,
     `アーカイブ: ${st.sessions}セッション、${st.oldestDate}〜${st.newestDate}、${mb(st.size)} MB → ${mb(st.gzSize)} MB`));
   console.log(L(`live: ${live.length} sessions — ${diff.pending} pending (${diff.newFiles} new, ${diff.changed} changed), ${diff.unchanged} up to date`,
@@ -152,12 +152,12 @@ function cmdRestore(o) {
     if (!o.to) {
       console.error(L('restore --all needs --to DIR (restoring the whole archive over your live sessions is not what you want)',
         'restore --all には --to DIR が必要です(アーカイブ全体をライブ側へ戻すのは通常望ましくありません)'));
-      console.error(L('  e.g. ccforever restore --all --to /tmp/history && cchours --base-dir /tmp/history',
-        '  例: ccforever restore --all --to /tmp/history && cchours --base-dir /tmp/history'));
+      console.error(L('  e.g. cclogsall restore --all --to /tmp/history && cchours --base-dir /tmp/history',
+        '  例: cclogsall restore --all --to /tmp/history && cchours --base-dir /tmp/history'));
       process.exit(1);
     }
   } else {
-    if (!prefix) { console.error(L('usage: ccforever restore <session-id-prefix> | restore --all --to DIR', '使い方: ccforever restore <セッションIDの先頭> または restore --all --to DIR')); process.exit(1); }
+    if (!prefix) { console.error(L('usage: cclogsall restore <session-id-prefix> | restore --all --to DIR', '使い方: cclogsall restore <セッションIDの先頭> または restore --all --to DIR')); process.exit(1); }
     rels = K.findInArchive(manifest, prefix);
     if (!rels.length) { console.error(L(`no archived session matches "${prefix}"`, `"${prefix}" に一致するアーカイブがありません`)); process.exit(1); }
   }
@@ -181,7 +181,7 @@ function cmdRestore(o) {
 
 function cmdSearch(o) {
   const query = o.args[0] || o.cmdArg;
-  if (!query) { console.error(L('usage: ccforever search <query>   (plain text, or /regex/)', '使い方: ccforever search <検索語>  (プレーンテキスト または /正規表現/)')); process.exit(1); }
+  if (!query) { console.error(L('usage: cclogsall search <query>   (plain text, or /regex/)', '使い方: cclogsall search <検索語>  (プレーンテキスト または /正規表現/)')); process.exit(1); }
   const files = S.listSearchable(outDir(o), CLAUDE_DIR);
   const { total, results } = S.search(files, query, { limit: o.limit || 20, caseSensitive: o.caseSensitive });
   if (o.json) return console.log(JSON.stringify({ query, total, results }, null, 2));
@@ -194,8 +194,8 @@ function cmdSearch(o) {
     console.log(`${r.date || '?'}  ${r.project}  ${r.session.slice(0, 8)}  ${r.hits}${L(' hits', '件')}  [${where}]`);
     console.log(`   ${r.snippet}\n`);
   }
-  console.log(L(`open one:  ccforever restore ${results[0].session.slice(0, 8)} --to /tmp/recall`,
-    `復元する:  ccforever restore ${results[0].session.slice(0, 8)} --to /tmp/recall`));
+  console.log(L(`open one:  cclogsall restore ${results[0].session.slice(0, 8)} --to /tmp/recall`,
+    `復元する:  cclogsall restore ${results[0].session.slice(0, 8)} --to /tmp/recall`));
 }
 
 function ask(question) {
@@ -223,7 +223,7 @@ async function cmdUninstall(o) {
   const settings = K.readSettings(SETTINGS);
   if (!I.isInstalled(settings)) return console.log(L('not installed', 'インストールされていません'));
   if (!o.yes) {
-    const a = await ask(L('remove the ccforever hook? [y/N] ', 'ccforever のフックを削除しますか? [y/N] '));
+    const a = await ask(L('remove the cclogsall hook? [y/N] ', 'cclogsall のフックを削除しますか? [y/N] '));
     if (a !== 'y' && a !== 'yes') return console.log(L('aborted', '中止しました'));
   }
   fs.writeFileSync(SETTINGS, JSON.stringify(I.withoutHook(settings), null, 2) + '\n');
@@ -243,4 +243,4 @@ async function main() {
   process.exit(1);
 }
 
-main().catch((e) => { console.error('ccforever:', e.message); process.exit(1); });
+main().catch((e) => { console.error('cclogsall:', e.message); process.exit(1); });
