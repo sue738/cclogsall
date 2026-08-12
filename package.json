@@ -1,0 +1,41 @@
+{
+  "name": "ccforever",
+  "version": "0.1.0",
+  "description": "Claude Code silently deletes your transcripts after 30 days. Keep yours — compressed, incremental, local.",
+  "bin": {
+    "ccforever": "bin/ccforever.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sue738/ccforever.git"
+  },
+  "homepage": "https://github.com/sue738/ccforever#readme",
+  "bugs": {
+    "url": "https://github.com/sue738/ccforever/issues"
+  },
+  "author": "sue738",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "backup",
+    "archive",
+    "transcript",
+    "history",
+    "search",
+    "cleanup",
+    "cli"
+  ]
+}
