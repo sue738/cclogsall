@@ -1,6 +1,6 @@
 {
   "name": "cclogsall",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Claude Code silently deletes your transcripts after 30 days. Keep yours — compressed, incremental, local.",
   "bin": {
     "cclogsall": "bin/cclogsall.js"

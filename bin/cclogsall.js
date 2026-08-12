@@ -119,8 +119,12 @@ function cmdBackup(o) {
   console.log(L(
     `⛑ archived ${toArchive.length} session(s) (${unchanged} unchanged) — ${mb(size)} MB → ${mb(gzSize)} MB`,
     `⛑ ${toArchive.length}セッションをアーカイブ(${unchanged}件は変更なし) — ${mb(size)} MB → ${mb(gzSize)} MB`));
-  console.log(L(`   archive total: ${st.sessions} sessions, ${st.oldestDate} → ${st.newestDate}, ${mb(st.gzSize)} MB on disk (${dir})`,
-    `   アーカイブ合計: ${st.sessions}セッション、${st.oldestDate}〜${st.newestDate}、${mb(st.gzSize)} MB(${dir})`));
+  if (st.sessions) {
+    console.log(L(`   archive total: ${st.sessions} sessions, ${st.oldestDate} → ${st.newestDate}, ${mb(st.gzSize)} MB on disk (${dir})`,
+      `   アーカイブ合計: ${st.sessions}セッション、${st.oldestDate}〜${st.newestDate}、${mb(st.gzSize)} MB(${dir})`));
+  } else {
+    console.log(L(`   archive is empty — nothing to keep yet (${dir})`, `   アーカイブは空です(${dir})`));
+  }
   console.log(L('   note: archives include secrets verbatim (API keys you pasted, tokens in output) — scan before sharing',
     '   注意: アーカイブには機密もそのまま含まれます(貼り付けたAPIキー等) — 共有前にスキャンを'));
 }
