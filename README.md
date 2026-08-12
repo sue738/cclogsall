@@ -97,10 +97,10 @@ v1 (planned; for now rely on full-disk encryption).
   own cleanup bookkeeping.
 - No encryption at rest in v1 (see above).
 
-## 運用例
+## In practice
 
 ```bash
-# 毎晩の増分バックアップ(cron)
+# nightly incremental backup (cron)
 0 3 * * * /usr/local/bin/cclogsall backup --quiet
-# または: cclogsall install でセッション開始時に自動実行(非同期・体感ゼロ)
+# or: cclogsall install — runs on every session start, async, unnoticeable
 ```
