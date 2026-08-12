@@ -77,7 +77,7 @@ your backup tool then picks up) does.
 Anthropic's stated reason for the 30-day default is that transcripts can contain
 API keys, passwords, and source code. **An archive preserves those too — and
 removes the "at least it auto-deletes" mitigation.** Pair cclogsall with
-Scan for secrets before you archive or share, and treat
+Scan with [`ccleaks`](https://github.com/sue738/ccleaks) before you archive or share, and treat
 `~/.cclogsall` with the same care as `~/.ssh`. Encryption at rest is not in
 v1 (planned; for now rely on full-disk encryption).
 

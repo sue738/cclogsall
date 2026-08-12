@@ -49,7 +49,7 @@ Options:
   --yes           skip confirmation (install/uninstall)
   --json          machine-readable output
 
-Archives include everything — secrets too. Scan before sharing them anywhere.`;
+Archives include everything — secrets too. Scan first: npx ccleaks`;
 
 const CLAUDE_DIR = process.env.CCLOGSALL_CLAUDE_DIR || path.join(os.homedir(), '.claude');
 const SETTINGS = process.env.CCLOGSALL_SETTINGS || path.join(CLAUDE_DIR, 'settings.json');
@@ -125,8 +125,8 @@ function cmdBackup(o) {
   } else {
     console.log(L(`   archive is empty — nothing to keep yet (${dir})`, `   アーカイブは空です(${dir})`));
   }
-  console.log(L('   note: archives include secrets verbatim (API keys you pasted, tokens in output) — scan before sharing',
-    '   注意: アーカイブには機密もそのまま含まれます(貼り付けたAPIキー等) — 共有前にスキャンを'));
+  console.log(L('   note: archives include secrets verbatim — scan with `npx ccleaks` before sharing any of this',
+    '   注意: アーカイブには機密もそのまま含まれます — 共有前に `npx ccleaks` でスキャンを'));
 }
 
 function cmdStatus(o) {
