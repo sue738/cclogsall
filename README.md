@@ -83,13 +83,17 @@ v1 (planned; for now rely on full-disk encryption).
 
 ## Security & trust
 
-- Zero dependencies, no postinstall, no build step. ~450 lines total — read it.
+- Zero dependencies, no postinstall, no build step. ~650 lines total — read it.
 - Local only: nothing leaves your machine, no network calls at all.
 - `install` shows the exact settings.json diff and asks before writing.
 - Restore never overwrites an existing session file.
 
 ## Honest limitations
 
+- **Tested on macOS and Linux.** Reading, archiving, searching and restoring
+  use `path.join`/`os.homedir()` and should work on Windows, but `install`
+  writes a POSIX shell hook (`command -v ... >/dev/null`) that will not run
+  there — set the SessionStart hook by hand instead. Untested either way.
 - **Already-deleted sessions cannot be recovered.** cclogsall can only protect
   what still exists when you first run `backup`.
 - Restoring resets the file date, so the cleanup clock starts fresh for that file.
