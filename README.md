@@ -21,6 +21,8 @@ $ npx cclogsall
 run `cclogsall backup` to archive everything (compressed, incremental, local)
 ```
 
+> Read the archive with [agstats](https://github.com/sue738/agstats) `--archive` to get stats past 30 days.
+
 ## Install / run
 
 ```bash
