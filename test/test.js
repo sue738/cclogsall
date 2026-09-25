@@ -196,6 +196,10 @@ console.log('== search(gzipのまま全文検索) ==');
   ok('CLI: search --json', sj.total === 1 && typeof sj.results[0].snippet === 'string');
   const sn = execFileSync('node', [BIN, 'search', 'ZZZZ'], { encoding: 'utf8', env: searchEnv });
   ok('CLI: 0件でも落ちない', sn.includes('no conversation matches'));
+  const limitCode = (v) => { try { execFileSync('node', [BIN, 'search', 'B+木', '--limit', v], { encoding: 'utf8', env: searchEnv, stdio: 'pipe' }); return 0; } catch (e) { return e.status; } };
+  ok('★--limit -1 は exit 2(一致を黙って隠さない)', limitCode('-1') === 2);
+  ok('★--limit abc は exit 2', limitCode('abc') === 2);
+  ok('--limit 5 は通る', limitCode('5') === 0);
 
   fs.rmSync(sdir, { recursive: true, force: true });
 }

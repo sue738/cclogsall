@@ -70,6 +70,11 @@ function parseArgs(argv) {
     else if (!o.cmd && !a.startsWith('-')) o.cmd = a;
     else o.args.push(a);
   }
+  // --limit -1 hid every match and --limit abc fell back to 20 without a word.
+  if (o.limit != null && !(Number.isInteger(o.limit) && o.limit > 0)) {
+    console.error(L('--limit: expected a positive whole number', '--limit: 正の整数で指定してください'));
+    process.exit(2);
+  }
   return o;
 }
 
