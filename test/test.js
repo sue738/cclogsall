@@ -158,8 +158,8 @@ console.log('== search(gzipのまま全文検索) ==');
   const live = path.join(sdir, 'claude', 'projects', '-h-now');
   fs.mkdirSync(arch, { recursive: true }); fs.mkdirSync(live, { recursive: true });
   const body = [
-    ent({ type: 'user', timestamp: '2026-06-01T00:00:00.000Z', message: { content: 'なぜ B+木 を使うのか' } }),
-    ent({ type: 'assistant', timestamp: '2026-06-01T00:01:00.000Z', message: { content: [{ type: 'text', text: '葉が連結されているから' }] } }),
+    ent({ type: 'user', timestamp: '2026-06-01T12:00:00.000Z', message: { content: 'なぜ B+木 を使うのか' } }),
+    ent({ type: 'assistant', timestamp: '2026-06-01T12:01:00.000Z', message: { content: [{ type: 'text', text: '葉が連結されているから' }] } }),
   ].join('\n') + '\n';
   fs.writeFileSync(path.join(arch, 'deleted1.jsonl.gz'), zlib.gzipSync(Buffer.from(body)));
   fs.writeFileSync(path.join(live, 'current.jsonl'), body.replace('B+木', 'B-tree'));
@@ -198,6 +198,29 @@ console.log('== search(gzipのまま全文検索) ==');
   ok('CLI: 0件でも落ちない', sn.includes('no conversation matches'));
 
   fs.rmSync(sdir, { recursive: true, force: true });
+}
+
+console.log('== 日付はローカル日(UTC ではない) ==');
+{
+  // 東京の 2026-09-20 08:00 は UTC では 19日 23:00。表示する日付は手元の日。
+  const tzDir = path.join(tmp, 'tz');
+  const proj = path.join(tzDir, 'claude', 'projects', '-p-a');
+  fs.mkdirSync(proj, { recursive: true });
+  const f = path.join(proj, '22222222-bbbb.jsonl');
+  fs.writeFileSync(f, [0, 30].map((sec) => JSON.stringify({ type: sec ? 'assistant' : 'user', timestamp: new Date(Date.parse('2026-09-19T23:00:00Z') + sec * 1000).toISOString(), message: { content: 'tz needle' } })).join('\n') + '\n');
+  const at = new Date(Date.parse('2026-09-19T23:00:00Z'));
+  fs.utimesSync(f, at, at);
+  fs.writeFileSync(path.join(tzDir, 'claude', 'settings.json'), '{}');
+  const tzEnv = Object.assign({}, process.env, {
+    TZ: 'Asia/Tokyo', CCLOGSALL_CLAUDE_DIR: path.join(tzDir, 'claude'), CCLOGSALL_SETTINGS: path.join(tzDir, 'claude', 'settings.json'),
+    CCLOGSALL_OUT: path.join(tzDir, 'archive'), CCLOGSALL_LANG: 'en',
+  });
+  const d = JSON.parse(execFileSync('node', [BIN, '--json'], { encoding: 'utf8', env: tzEnv }));
+  ok('★診断の最古日は JST の当日(09-20)', d.oldestDate === '2026-09-20' && d.newestDate === '2026-09-20');
+  const sr = JSON.parse(execFileSync('node', [BIN, 'search', 'tz needle', '--json'], { encoding: 'utf8', env: tzEnv }));
+  ok('★search の日付も JST の当日', sr.results[0].date === '2026-09-20' && sr.results[0].lastDate === '2026-09-20');
+  const st = JSON.parse(execFileSync('node', ['-e', `console.log(JSON.stringify(require(${JSON.stringify(path.join(__dirname, '..', 'lib', 'keeper.js'))}).archiveStats({ entries: { a: { size: 1, gzSize: 1, mtimeMs: ${at.getTime()} } } })))`], { encoding: 'utf8', env: tzEnv }));
+  ok('★アーカイブ統計の日付も当日', st.oldestDate === '2026-09-20' && st.newestDate === '2026-09-20');
 }
 
 fs.rmSync(tmp, { recursive: true, force: true });
